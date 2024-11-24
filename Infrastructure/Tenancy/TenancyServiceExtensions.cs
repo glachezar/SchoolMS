@@ -1,5 +1,6 @@
 ﻿namespace Infrastructure.Tenancy;
 
+using Application.Interfaces.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ internal static class TenancyServiceExtensions
             .AddMultiTenant<SchoolTenantInfo>()
             .WithHeaderStrategy(TenancyConstants.TenantIdName)
             .WithEFCoreStore<TenantDbContext, SchoolTenantInfo>()
-            .Services;
+            .Services
+            .AddScoped<ITenantService, TenantService>();
     }
 }
