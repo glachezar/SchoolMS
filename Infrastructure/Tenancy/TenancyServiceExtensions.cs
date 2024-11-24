@@ -1,6 +1,7 @@
 ﻿namespace Infrastructure.Tenancy;
 
 using Application.Interfaces.Tenancy;
+using Infrastructure.Identity.Constants;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +17,7 @@ internal static class TenancyServiceExtensions
             .UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
             .AddMultiTenant<SchoolTenantInfo>()
             .WithHeaderStrategy(TenancyConstants.TenantIdName)
+            .WithClaimStrategy(ClaimConstants.Tenant)
             .WithCustomQueryStrategy(TenancyConstants.TenantIdName)
             .WithEFCoreStore<TenantDbContext, SchoolTenantInfo>()
             .Services
