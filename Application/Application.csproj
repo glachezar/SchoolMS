@@ -10,4 +10,8 @@
     <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Interfaces\Tenancy\Queries\" />
+  </ItemGroup>
+
 </Project>
