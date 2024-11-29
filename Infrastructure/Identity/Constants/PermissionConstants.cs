@@ -52,16 +52,22 @@ public static class SchoolPermissions
         new SchoolPermission("Update Schools", SchoolAction.Update, SchoolFeature.Schools),
         new SchoolPermission("Delete Schools", SchoolAction.Delete, SchoolFeature.Schools),
 
-        new SchoolPermission("View Tenants", SchoolAction.Read, SchoolFeature.Tenants, IsBasic: true),
-        new SchoolPermission("Create Tenants", SchoolAction.Create, SchoolFeature.Tenants, IsBasic: true),
-        new SchoolPermission("Update Tenants", SchoolAction.Update, SchoolFeature.Tenants, IsBasic: true),
+        new SchoolPermission("View Tenants", SchoolAction.Read, SchoolFeature.Tenants, IsRoot: true),
+        new SchoolPermission("Create Tenants", SchoolAction.Create, SchoolFeature.Tenants, IsRoot: true),
+        new SchoolPermission("Update Tenants", SchoolAction.Update, SchoolFeature.Tenants, IsRoot: true),
         new SchoolPermission("Upgrade Tenants Subscription", SchoolAction.UpgradeSubscription, SchoolFeature.Tenants, IsRoot: true)
     ];
 
     public static IReadOnlyList<SchoolPermission> All { get; } = 
         new ReadOnlyCollection<SchoolPermission>(_allPermissions);
 
-    public static IReadOnlyList<SchoolPermission> Root { get; } = 
+    public static IReadOnlyList<SchoolPermission> Root { get; } =  
         new ReadOnlyCollection<SchoolPermission>(_allPermissions.Where(p => p.IsRoot).ToArray());
+
+    public static IReadOnlyList<SchoolPermission> Admin { get; } =  
+        new ReadOnlyCollection<SchoolPermission>(_allPermissions.Where(p => !p.IsRoot).ToArray());
+
+    public static IReadOnlyList<SchoolPermission> Basic { get; } =  
+        new ReadOnlyCollection<SchoolPermission>(_allPermissions.Where(p => p.IsBasic).ToArray());
 
 } 
