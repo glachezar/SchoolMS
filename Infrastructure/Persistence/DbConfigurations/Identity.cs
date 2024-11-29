@@ -1,4 +1,4 @@
-﻿namespace Infrastructure.Identity.DbConfigurations;
+﻿namespace Infrastructure.Persistence.DbConfigurations;
 
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Infrastructure.Identity.Models;
