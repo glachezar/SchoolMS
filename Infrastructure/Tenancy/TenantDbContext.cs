@@ -1,6 +1,7 @@
 ﻿namespace Infrastructure.Tenancy;
 
 using Finbuckle.MultiTenant.Stores;
+using Infrastructure.Persistence.DbConfigurations;
 using Microsoft.EntityFrameworkCore;
 
 public class TenantDbContext(DbContextOptions<TenantDbContext> options) 
@@ -10,6 +11,8 @@ public class TenantDbContext(DbContextOptions<TenantDbContext> options)
     {
         base.OnModelCreating(builder);
 
-        builder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+        builder
+            .Entity<SchoolTenantInfo>()
+            .ToTable("Tenants", SchemaNames.Multitenancy);
     }
 }
