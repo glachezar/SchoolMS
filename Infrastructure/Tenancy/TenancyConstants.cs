@@ -9,7 +9,7 @@ public class TenancyConstants
         public const string Email = "admin.root@school.com";
     }
 
-    public const string DefaultPassword = "1qaz!QAZ";
+    public const string DefaultPassword = "RootSchool1@3";
     public const string TenantIdName = "tenant";
 }
 
