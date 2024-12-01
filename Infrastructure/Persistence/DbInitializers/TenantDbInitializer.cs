@@ -1,17 +1,17 @@
 ﻿namespace Infrastructure.Persistence.DbInitializers;
 
+using Finbuckle.MultiTenant;
+using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal class TenantDbInitializer(TenantDbContext tenantDbContext) : ITenantDbInitializer
+internal class TenantDbInitializer(TenantDbContext tenantDbContext, ApplicationDbContext applicationDbContext, IServiceProvider serviceProvider) : ITenantDbInitializer
 {
     readonly TenantDbContext _tenantDbContext = tenantDbContext;
-
-    public Task InitializeApplicationDbForTenantAsync(SchoolTenantInfo tenant, CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    readonly ApplicationDbContext _applicationDbContext = applicationDbContext;
+    readonly IServiceProvider _serviceProvider = serviceProvider;
 
     public async Task InitializeDatabaseWithTenantAsync(CancellationToken cancellationToken)
     {
@@ -30,5 +30,19 @@ internal class TenantDbInitializer(TenantDbContext tenantDbContext) : ITenantDbI
             await _tenantDbContext.TenantInfo.AddAsync(rootTenant, cancellationToken);
             await _tenantDbContext.SaveChangesAsync(cancellationToken);
         }
+    }
+
+    public async Task InitializeApplicationDbForTenantAsync(SchoolTenantInfo tenant, CancellationToken cancellationToken)
+    {
+        using var scope = _serviceProvider.CreateScope();
+
+        _serviceProvider.GetRequiredService<IMultiTenantContextAccessor>()
+            .MultiTenantContext = new MultiTenantContext<SchoolTenantInfo>()
+            {
+                TenantInfo = tenant
+            };
+        
+        await _serviceProvider.GetRequiredService<ApplicationDbInitializer>()
+            .InitializeDatabaseWithTenantAsync(_applicationDbContext, cancellationToken);
     }
 }
