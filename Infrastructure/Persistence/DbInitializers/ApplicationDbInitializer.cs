@@ -17,7 +17,13 @@ internal class ApplicationDbInitializer(
     readonly RoleManager<ApplicationRole> _roleManager = roleManager;
     readonly UserManager<ApplicationUser> _userManager = userManager;
 
-    public async Task InitializeDefaultRolesAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
+    public async Task InitializeDatabaseWithTenantAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
+    {
+        await InitializeDefaultRolesAsync(applicationDbContext, cancellationToken);
+        await InitializeAdminUserAsync(cancellationToken);
+    }
+
+    private async Task InitializeDefaultRolesAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
     {
         foreach (string roleName in RoleConstants.DefaultRoles)
         {
@@ -35,6 +41,37 @@ internal class ApplicationDbInitializer(
             {
                 await AssignPermissionsToRole(applicationDbContext, SchoolPermissions.Admin, incomingRole, cancellationToken);
             }
+        }
+    }
+
+    private async Task InitializeAdminUserAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(_tenant.AdminEmail))
+        {
+            return;
+        }
+        if (await _userManager.Users.FirstOrDefaultAsync(u => u.Email == _tenant.AdminEmail) is not ApplicationUser adminUser)
+        {
+            adminUser = new ApplicationUser()
+            {
+                FirstName = TenancyConstants.FirstName,
+                LastName = TenancyConstants.LastName,
+                Email = _tenant.AdminEmail,
+                UserName = _tenant.AdminEmail,
+                EmailConfirmed = true,
+                PhoneNumberConfirmed = true,
+                NormalizedEmail = _tenant.AdminEmail.ToUpperInvariant(),
+                NormalizedUserName = _tenant.AdminEmail.ToUpperInvariant(),
+                IsActive = true
+            };
+
+            var password = new PasswordHasher<ApplicationUser>();
+            adminUser.PasswordHash = password.HashPassword(adminUser, TenancyConstants.DefaultPassword);
+            await _userManager.CreateAsync(adminUser);
+        }
+        if (!await _userManager.IsInRoleAsync(adminUser, RoleConstants.Admin))
+        {
+            await _userManager.AddToRoleAsync(adminUser, RoleConstants.Admin);
         }
     }
 
