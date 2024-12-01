@@ -1,5 +1,6 @@
 ﻿namespace Infrastructure;
 
+using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Tenancy;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ public static class ServiceCollectionExtensions
     {
         return services
             .AddMultiTenancyServices(configuration)
-            .AddPersistenceServices(configuration);
+            .AddPersistenceServices(configuration)
+            .AddIdentityServices();
     }
 }
