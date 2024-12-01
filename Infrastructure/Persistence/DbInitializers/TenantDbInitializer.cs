@@ -8,10 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Threading;
 using System.Threading.Tasks;
 
-internal class TenantDbInitializer(TenantDbContext tenantDbContext, ApplicationDbContext applicationDbContext, IServiceProvider serviceProvider) : ITenantDbInitializer
+internal class TenantDbInitializer(TenantDbContext tenantDbContext, IServiceProvider serviceProvider) : ITenantDbInitializer
 {
     readonly TenantDbContext _tenantDbContext = tenantDbContext;
-    readonly ApplicationDbContext _applicationDbContext = applicationDbContext;
     readonly IServiceProvider _serviceProvider = serviceProvider;
 
     public async Task InitializeDatabaseAsync(CancellationToken cancellationToken)
@@ -54,6 +53,6 @@ internal class TenantDbInitializer(TenantDbContext tenantDbContext, ApplicationD
             };
         
         await _serviceProvider.GetRequiredService<ApplicationDbInitializer>()
-            .InitializeDatabaseWithTenantAsync(_applicationDbContext, cancellationToken);
+            .InitializeDatabaseWithTenantAsync(cancellationToken);
     }
 }

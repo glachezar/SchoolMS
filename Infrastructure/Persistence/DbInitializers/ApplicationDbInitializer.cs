@@ -5,25 +5,26 @@ using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 internal class ApplicationDbInitializer(
     SchoolTenantInfo tenant,
     RoleManager<ApplicationRole> roleManager,
-    UserManager<ApplicationUser> userManager)
+    UserManager<ApplicationUser> userManager,
+    ApplicationDbContext applicationDbContext)
 {
     readonly SchoolTenantInfo _tenant = tenant;
     readonly RoleManager<ApplicationRole> _roleManager = roleManager;
     readonly UserManager<ApplicationUser> _userManager = userManager;
+    readonly ApplicationDbContext _applicationDbContext = applicationDbContext;
 
-    public async Task InitializeDatabaseWithTenantAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
+    public async Task InitializeDatabaseWithTenantAsync(CancellationToken cancellationToken)
     {
-        await InitializeDefaultRolesAsync(applicationDbContext, cancellationToken);
+        await InitializeDefaultRolesAsync(cancellationToken);
         await InitializeAdminUserAsync(cancellationToken);
     }
 
-    private async Task InitializeDefaultRolesAsync(ApplicationDbContext applicationDbContext, CancellationToken cancellationToken)
+    private async Task InitializeDefaultRolesAsync(CancellationToken cancellationToken)
     {
         foreach (string roleName in RoleConstants.DefaultRoles)
         {
@@ -35,11 +36,11 @@ internal class ApplicationDbInitializer(
 
             if (roleName == RoleConstants.Basic)
             {
-                await AssignPermissionsToRole(applicationDbContext, SchoolPermissions.Basic, incomingRole, cancellationToken);
+                await AssignPermissionsToRole(_applicationDbContext, SchoolPermissions.Basic, incomingRole, cancellationToken);
             }
             else if (roleName == RoleConstants.Admin)
             {
-                await AssignPermissionsToRole(applicationDbContext, SchoolPermissions.Admin, incomingRole, cancellationToken);
+                await AssignPermissionsToRole(_applicationDbContext, SchoolPermissions.Admin, incomingRole, cancellationToken);
             }
         }
     }
