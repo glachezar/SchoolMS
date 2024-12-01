@@ -1,7 +1,6 @@
 ﻿namespace Infrastructure.Persistence.DbInitializers;
 
 using Finbuckle.MultiTenant;
-using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
