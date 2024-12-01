@@ -5,6 +5,6 @@ using Application.Interfaces.Tenancy.Commands;
 public interface ITenantService
 {
     //Tenant creation
-    Task<string> CreateTenantAsync(CreateTenantRequest createTenant);
+    Task<string> CreateTenantAsync(CreateTenantRequest createTenant, CancellationToken cancellationToken);
 }
  

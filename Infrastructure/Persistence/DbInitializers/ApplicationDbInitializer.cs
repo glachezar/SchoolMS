@@ -7,7 +7,7 @@ using Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-internal class ApplicationDbInitializer(
+public class ApplicationDbInitializer(
     SchoolTenantInfo tenant,
     RoleManager<ApplicationRole> roleManager,
     UserManager<ApplicationUser> userManager,
