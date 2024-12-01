@@ -16,7 +16,4 @@ public static class RoleConstants
 
     public static bool IsDefault(string roleName) => 
         DefaultRoles.Any(role => role == roleName);
-} 
- //The RoleConstants class contains the role names and a list of default roles.The IsDefault method checks if a role is a default role.
- //The next step is to create a class that will seed the default roles.
- //TODO: Create a new class named IdentityDataSeeder in the Infrastructure/Identity/Data/Seeders folder.
+}
