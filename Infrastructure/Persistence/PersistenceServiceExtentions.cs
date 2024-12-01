@@ -12,7 +12,9 @@ public static class PersistenceServiceExtentions
     {
         return services
             .AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")))
+            .AddTransient<ITenantDbInitializer, TenantDbInitializer>()
+            .AddTransient<ApplicationDbInitializer>();
     }
 
     public static async Task AddDbInitializerAsync(this IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
