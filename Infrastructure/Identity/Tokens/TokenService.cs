@@ -48,9 +48,40 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
         return await GenerateTokenAndUpdateUserAsync(userInDb);
     }
 
-    public Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
+    public async Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
     {
-        throw new NotImplementedException();
+        var userPrincipal = GetClaimsPrincipalFromToken(refreshTokenRequest.CurrentJwtToken);
+        var userEmail = userPrincipal.GetEmail();
+
+        var userInDb = await _userManager.FindByEmailAsync(userEmail)
+            ?? throw new UnauthorizedException("Authentication not successful!");
+
+        return await GenerateTokenAndUpdateUserAsync(userInDb);
+    }
+
+    private ClaimsPrincipal GetClaimsPrincipalFromToken(string expiredToken)
+    {
+        var tkValidationParams = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecret2345678")),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ClockSkew = TimeSpan.Zero,
+            RoleClaimType = ClaimTypes.Role,
+            ValidateLifetime = false
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var principal = tokenHandler.ValidateToken(expiredToken, tkValidationParams, out var securityToken);
+
+        if (securityToken is not JwtSecurityToken jwtSecurityToken || 
+            !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new UnauthorizedException("Invalid Token. Faild to create refresh token");
+        }
+
+        return principal;
     }
 
     private async Task<TokenResponse> GenerateTokenAndUpdateUserAsync(ApplicationUser user)
