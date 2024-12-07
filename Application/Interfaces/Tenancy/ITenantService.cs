@@ -1,6 +1,7 @@
 ﻿namespace Application.Interfaces.Tenancy;
 
 using Application.Interfaces.Tenancy.Commands;
+using Application.Interfaces.Tenancy.Models;
 
 public interface ITenantService
 {
@@ -12,5 +13,9 @@ public interface ITenantService
     Task<string> DeactivateTenantAsync(string tenantId);
 
     Task<string> UpdateTenantSubscriptionAsync(string tenantId, DateTime newExpiryDate);
+
+    Task<List<TenantDto>> GetAllTenantsAsync();
+
+    Task<TenantDto> GetTenantByIdAsync(string tenantId);
 }
  
