@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\Tenancy\Queries\" />
+    <Folder Include="Features\Tenancy\Queries\" />
   </ItemGroup>
 
   <ItemGroup>
