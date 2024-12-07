@@ -1,5 +1,6 @@
 ﻿namespace Infrastructure.Identity.Tokens;
 
+using Application.Exceptions;
 using Application.Features.Identity.Tokens;
 using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,32 +21,34 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
     public async Task<TokenResponse> LoginAsync(TokenRequest request)
     {
         var userInDb = await _userManager.FindByEmailAsync(request.Email);
+
         if (userInDb is null)
         {
-            throw new Exception("Invalid email or password");
+            throw new UnauthorizedException("Authentication not successful!");
         }
 
         if (!await _userManager.CheckPasswordAsync(userInDb, request.Password))
         {
-            throw new Exception("Invalid email or password");
+            throw new UnauthorizedException("Incorrect Username or Password!");
         }
 
         if (!userInDb.IsActive)
         {
-            throw new Exception("User is not active");
+            throw new UnauthorizedException("User Not Active. Please contact administrator.");
         }
 
         if (_tenant.Id != TenancyConstants.Root.Id)
         {
             if (_tenant.ValidUpTo < DateTime.UtcNow)
             {
-                throw new Exception("Tenant subscription expired!");
+                throw new UnauthorizedException("Tenant subscription has expired. Please contact administrator.");
             }
         }
 
+        return await GenerateTokenAndUpdateUserAsync(userInDb);
     }
 
-    public async Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
+    public Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
     {
         throw new NotImplementedException();
     }
@@ -52,7 +56,17 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
     private async Task<TokenResponse> GenerateTokenAndUpdateUserAsync(ApplicationUser user)
     {
         var newToken = GenerateJwt(user);
+
         user.RefreshToken = GenerateRefreshToken();
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+
+        await _userManager.UpdateAsync(user);
+        return new() 
+        {
+            JwtToken = newToken,
+            RefreshToken = user.RefreshToken,
+            RefreshTokenExpiryDate = user.RefreshTokenExpiryTime
+        };
     }
 
     private string GenerateJwt(ApplicationUser user)
@@ -94,6 +108,9 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
 
     private string GenerateRefreshToken()
     {
-        throw new NotImplementedException();
+        byte[] randomNumber = new byte[32];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
     }
 }
