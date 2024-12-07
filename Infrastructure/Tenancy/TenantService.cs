@@ -1,12 +1,16 @@
 ﻿namespace Infrastructure.Tenancy;
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using Mapster;
+using Finbuckle.MultiTenant;
+
 using Application.Interfaces.Tenancy;
 using Application.Interfaces.Tenancy.Commands;
 using Application.Interfaces.Tenancy.Models;
-using Finbuckle.MultiTenant;
 using Infrastructure.Persistence.DbInitializers;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 public class TenantService(IMultiTenantStore<SchoolTenantInfo> tenantStore,
     ApplicationDbInitializer applicationDbInitializer) : ITenantService
@@ -59,26 +63,35 @@ public class TenantService(IMultiTenantStore<SchoolTenantInfo> tenantStore,
     public async Task<TenantDto> GetTenantByIdAsync(string tenantId)
     {
         var tenantInDb = await _tenantStore.TryGetAsync(tenantId);
+        #region Manual Mapping
+        //Manual Mapping - Opt 1
+        //return new TenantDto()
+        //{
+        //    Id = tenantInDb.Id,
+        //    Identifier = tenantInDb.Identifier,
+        //    Name = tenantInDb.Name,
+        //    ConnectionString = tenantInDb.ConnectionString,
+        //    AdminEmail = tenantInDb.AdminEmail,
+        //    ValidUpTo = tenantInDb.ValidUpTo,
+        //    IsActive = tenantInDb.IsActive
+        //};
+        #endregion
 
-        return new TenantDto()
-        {
-            Id = tenantInDb.Id,
-            Identifier = tenantInDb.Identifier,
-            Name = tenantInDb.Name,
-            ConnectionString = tenantInDb.ConnectionString,
-            AdminEmail = tenantInDb.AdminEmail,
-            ValidUpTo = tenantInDb.ValidUpTo,
-            IsActive = tenantInDb.IsActive
-        };
+        //Using a mapping library Mapster - Opt 2
+        return tenantInDb.Adapt<TenantDto>();
     }
 
-    public Task<List<TenantDto>> GetAllTenantsAsync()
+    public async Task<List<TenantDto>> GetAllTenantsAsync()
     {
-        throw new NotImplementedException();
+        var tenantsInDb = await _tenantStore.GetAllAsync();
+        return tenantsInDb.Adapt<List<TenantDto>>();
     }
 
-    public Task<string> UpdateTenantSubscriptionAsync(string tenantId, DateTime newExpiryDate)
+    public async Task<string> UpdateTenantSubscriptionAsync(string tenantId, DateTime newExpiryDate)
     {
-        throw new NotImplementedException();
+        var tenantInDb = await _tenantStore.TryGetAsync(tenantId);
+        tenantInDb.ValidUpTo = newExpiryDate;
+        await _tenantStore.TryUpdateAsync(tenantInDb);
+        return tenantInDb.Id;
     }
 }
