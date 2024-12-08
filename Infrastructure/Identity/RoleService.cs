@@ -1,5 +1,6 @@
 ﻿namespace Infrastructure.Identity;
 
+using Application.Exceptions;
 using Application.Features.Identity.Roles;
 using Finbuckle.MultiTenant;
 using Infrastructure.Identity.Models;
@@ -32,7 +33,7 @@ public class RoleService(
 
         if (!result.Succeeded)
         {
-            // TODO: Throw exception
+            throw new IdentityException("Failed to create a role.", GetIdentityResultErrorDescriptions(result));
         }
 
         return newRole.Id;
@@ -66,5 +67,15 @@ public class RoleService(
     public Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request)
     {
         throw new NotImplementedException();
+    }
+
+    private List<string> GetIdentityResultErrorDescriptions(IdentityResult result)
+    {
+        var errorDescriptions = new List<string>();
+        foreach (var error in result.Errors)
+        {
+            errorDescriptions.Add(error.Description);
+        }
+        return errorDescriptions;
     }
 }
