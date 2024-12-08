@@ -1,5 +1,6 @@
 ﻿namespace Infrastructure.Identity;
 
+using Application.Features.Identity.Roles;
 using Application.Features.Identity.Tokens;
 using Infrastructure.Identity.Models;
 using Infrastructure.Identity.Tokens;
@@ -24,6 +25,7 @@ public static class IdentityServiceExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders()
             .Services
-            .AddTransient<ITokenService, TokenService>();
+            .AddTransient<ITokenService, TokenService>()
+            .AddTransient<IRoleService, RoleService>();
     }
 }
