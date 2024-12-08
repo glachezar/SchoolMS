@@ -7,6 +7,7 @@ using Finbuckle.MultiTenant;
 using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Contexts;
+using Infrastructure.Tenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -106,7 +107,53 @@ public class RoleService(
 
     public async Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request)
     {
-        throw new NotImplementedException();
+        var roleInDb = await _roleManager.FindByIdAsync(request.RoleId)
+            ?? throw new NotFoundException("Role does not exists.");
+
+        if (roleInDb.Name == RoleConstants.Admin)
+            throw new ConflictException($"Not allowed to change permissions of '{roleInDb.Name}' role.");
+
+        if (_tenant.Id != TenancyConstants.Root.Id)
+            request.Permissions.RemoveAll(p => p.StartsWith("Permission.Root."));
+
+        var currentClaims = await _roleManager.GetClaimsAsync(roleInDb);
+
+        foreach (var claim in currentClaims.Where(c => request.Permissions.Any(p => p == c.Value)))
+        {
+            var result = await _roleManager.RemoveClaimAsync(roleInDb, claim);
+
+            if (!result.Succeeded)
+                throw new IdentityException("Failed to remove role permissions.", GetIdentityResultErrorDescriptions(result));
+        }
+
+        foreach (var permission in request.Permissions.Where(p => !currentClaims.Any(c => c.Value == p)))
+        {
+            await _applicationDbContext
+                .RoleClaims
+                .AddAsync(new IdentityRoleClaim<string>
+                {
+                    RoleId = roleInDb.Id,
+                    ClaimType = ClaimConstants.Permission,
+                    ClaimValue = permission
+                });
+
+            await _applicationDbContext.SaveChangesAsync();
+        }
+
+        return "Permissions updated successfully.";
+    }
+
+    public async Task<RoleDto> GetRoleWithPermissionAsync(string id, CancellationToken cancellationToken)
+    {
+        var roleDto = await GetRoleByIdAsync(id, cancellationToken);
+
+        roleDto.Permissions = await _applicationDbContext
+            .RoleClaims
+            .Where(rc => rc.RoleId == id && rc.ClaimType == ClaimConstants.Permission)
+            .Select(rc => rc.ClaimValue)
+            .ToListAsync(cancellationToken);
+
+        return roleDto;
     }
 
     private List<string> GetIdentityResultErrorDescriptions(IdentityResult result)
