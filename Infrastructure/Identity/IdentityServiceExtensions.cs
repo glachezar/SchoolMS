@@ -1,6 +1,8 @@
 ﻿namespace Infrastructure.Identity;
 
+using Application.Features.Identity.Tokens;
 using Infrastructure.Identity.Models;
+using Infrastructure.Identity.Tokens;
 using Infrastructure.Persistence.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,6 +23,7 @@ public static class IdentityServiceExtensions
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders()
-            .Services;
+            .Services
+            .AddTransient<ITokenService, TokenService>();
     }
 }
