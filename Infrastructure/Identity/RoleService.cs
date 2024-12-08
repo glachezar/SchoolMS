@@ -7,7 +7,9 @@ using Finbuckle.MultiTenant;
 using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Contexts;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,11 +27,11 @@ public class RoleService(
 
     public async Task<string> CreateAsync(CreateRoleRequest request)
     {
-        var newRole = new ApplicationRole()
-        {
-            Name = request.Name,
-            Description = request.Description
-        };
+        var newRole = request.Adapt<ApplicationRole>();
+
+        //Possibe Error: Role name is already taken.
+        if (await _roleManager.RoleExistsAsync(newRole.Name))
+            throw new ConflictException($"Role '{newRole.Name}' already exists.");
 
         var result = await _roleManager.CreateAsync(newRole);
 
@@ -78,22 +80,31 @@ public class RoleService(
         return roleInDb.Name;
     }
 
-    public Task<bool> DoesItExistAsync(string name)
+    public async Task<bool> DoesItExistAsync(string name)
     {
-        throw new NotImplementedException();
+        return await _roleManager.RoleExistsAsync(name);    
     }
 
-    public Task<List<RoleDto>> GetAllRolesAsync(CancellationToken cancellationToken)
+    public async Task<RoleDto> GetRoleByIdAsync(string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var roleInDb = await _applicationDbContext
+            .Roles
+            .SingleOrDefaultAsync(r => r.Id == id, cancellationToken)
+            ?? throw new NotFoundException("Role does not exists.");
+
+        return roleInDb.Adapt<RoleDto>();
     }
 
-    public Task<RoleDto> GetRoleByIdAsync(string id)
+    public async Task<List<RoleDto>> GetAllRolesAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var rolesInDb = await _roleManager
+            .Roles
+            .ToListAsync(cancellationToken);
+
+        return rolesInDb.Adapt<List<RoleDto>>();
     }
 
-    public Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request)
+    public async Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request)
     {
         throw new NotImplementedException();
     }

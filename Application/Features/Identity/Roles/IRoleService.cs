@@ -8,6 +8,6 @@ public interface IRoleService
     Task<string> UpdatePermissionsAsync(UpdateRolePermissionsRequest request);
 
     Task<List<RoleDto>> GetAllRolesAsync(CancellationToken cancellationToken);
-    Task<RoleDto> GetRoleByIdAsync(string id);
+    Task<RoleDto> GetRoleByIdAsync(string id, CancellationToken cancellationToken);
     Task<bool> DoesItExistAsync(string name);
 }
