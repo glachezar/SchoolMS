@@ -8,4 +8,9 @@ public interface IUserService
     Task<string> ActivateOrDeactivateUserAsync(string userId, bool activation);
     Task<string> ChangePasswordAsync(ChangePasswordRequest request);
     Task<string> AssignRolesAsync(string userId, UserRoleRequest request);
+
+    Task<List<UserDto>> GetUsersAsync(CancellationToken cancellationToken);
+    Task<UserDto> GetUserByIdAsync(string id, CancellationToken cancellationToken);
+    Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken);
+    Task<bool> IsEmailTakenAsync(string email);
 }
