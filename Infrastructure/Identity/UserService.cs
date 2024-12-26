@@ -8,7 +8,6 @@ using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading;
@@ -28,11 +27,7 @@ public class UserService(
 
     public async Task<string> ActivateOrDeactivateUserAsync(string userId, bool activation)
     {
-        var userInDb = await _userManager
-            .Users
-            .Where(u => u.Id == userId)
-            .FirstOrDefaultAsync() ??
-            throw new NotFoundException("User do not exists.");
+        var userInDb = await GetUserAsync(userId);
 
         userInDb.IsActive = activation;
         await _userManager.UpdateAsync(userInDb);
@@ -41,11 +36,7 @@ public class UserService(
 
     public async Task<string> AssignRolesAsync(string userId, UserRoleRequest request)
     {
-        var userInDb = await _userManager
-            .Users
-            .Where(u => u.Id == userId)
-            .FirstOrDefaultAsync() ??
-            throw new NotFoundException("User do not exists.");
+        var userInDb = await GetUserAsync(userId);
 
         if (await _userManager.IsInRoleAsync(userInDb, RoleConstants.Admin)
             && request.UserRoles.Any(ur => !ur.IsAssigned && ur.Name == RoleConstants.Admin))
@@ -76,9 +67,19 @@ public class UserService(
         return userInDb.Id;
     }
 
-    public Task<string> ChangePasswordAsync(ChangePasswordRequest request)
+    public async Task<string> ChangePasswordAsync(ChangePasswordRequest request)
     {
-        throw new NotImplementedException();
+        var userInDb = await GetUserAsync(request.UserId);
+
+        if (request.NewPassword != request.ConfirmPassword)
+            throw new ConflictException("Passwords do not match.");
+
+        var result = await _userManager.ChangePasswordAsync(userInDb, request.CurrentPassword, request.NewPassword);
+
+        if (!result.Succeeded)
+            throw new IdentityException("Failed to change password.", GetIdentityResultErrorDescriptions(result));
+
+        return userInDb.Id;
     }
 
     public Task<string> CreateUserAsync(CreateUserRequest request)
@@ -114,5 +115,24 @@ public class UserService(
     public Task<string> UpdateUserAsync(UpdateUserRequest request)
     {
         throw new NotImplementedException();
+    }
+
+    private async Task<ApplicationUser> GetUserAsync(string userId)
+    {
+        return await _userManager
+            .Users
+            .Where(u => u.Id == userId)
+            .FirstOrDefaultAsync() ??
+            throw new NotFoundException("User do not exists.");
+    }
+
+    private List<string> GetIdentityResultErrorDescriptions(IdentityResult result)
+    {
+        var errorDescriptions = new List<string>();
+        foreach (var error in result.Errors)
+        {
+            errorDescriptions.Add(error.Description);
+        }
+        return errorDescriptions;
     }
 }
