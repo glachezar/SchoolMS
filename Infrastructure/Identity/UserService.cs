@@ -105,9 +105,16 @@ public class UserService(
         return newUser.Id;
     }
 
-    public Task<string> DeleteUserAsync(string id)
+    public async Task<string> DeleteUserAsync(string id)
     {
-        throw new NotImplementedException();
+        var userInDb = await GetUserAsync(id);
+
+        var result = await _userManager.DeleteAsync(userInDb);
+
+        if (!result.Succeeded)
+            throw new IdentityException("Failed to delete user.", GetIdentityResultErrorDescriptions(result));
+
+        return userInDb.Id;
     }
 
     public Task<UserDto> GetUserByIdAsync(string id, CancellationToken cancellationToken)
