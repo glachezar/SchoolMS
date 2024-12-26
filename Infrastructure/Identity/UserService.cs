@@ -166,9 +166,22 @@ public class UserService(
         return await _userManager.FindByEmailAsync(email) is not null;
     }
 
-    public Task<string> UpdateUserAsync(UpdateUserRequest request)
+    public async Task<string> UpdateUserAsync(UpdateUserRequest request)
     {
-        throw new NotImplementedException();
+        var userInDb = await GetUserAsync(request.Id);
+
+        userInDb.FirstName = request.FirstName;
+        userInDb.LastName = request.LastName;
+        userInDb.PhoneNumber = request.PhoneNumber;
+
+        var result = await _userManager.UpdateAsync(userInDb);
+
+        if (!result.Succeeded)
+            throw new IdentityException("Failed to update user.", GetIdentityResultErrorDescriptions(result));
+
+        await _signInManager.RefreshSignInAsync(userInDb);
+
+        return userInDb.Id;
     }
 
     private async Task<ApplicationUser> GetUserAsync(string userId, CancellationToken cancellationToken = default)
