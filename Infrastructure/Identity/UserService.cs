@@ -161,9 +161,9 @@ public class UserService(
         return usersInDb.Adapt<List<UserDto>>();
     }
 
-    public Task<bool> IsEmailTakenAsync(string email)
+    public async Task<bool> IsEmailTakenAsync(string email)
     {
-        throw new NotImplementedException();
+        return await _userManager.FindByEmailAsync(email) is not null;
     }
 
     public Task<string> UpdateUserAsync(UpdateUserRequest request)
