@@ -7,6 +7,7 @@ using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
+using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -117,9 +118,11 @@ public class UserService(
         return userInDb.Id;
     }
 
-    public Task<UserDto> GetUserByIdAsync(string id, CancellationToken cancellationToken)
+    public async Task<UserDto> GetUserByIdAsync(string id, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var userInDb = await GetUserAsync(id);
+
+        return userInDb.Adapt<UserDto>();
     }
 
     public Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken)
