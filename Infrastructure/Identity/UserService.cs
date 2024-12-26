@@ -82,9 +82,27 @@ public class UserService(
         return userInDb.Id;
     }
 
-    public Task<string> CreateUserAsync(CreateUserRequest request)
+    public async Task<string> CreateUserAsync(CreateUserRequest request)
     {
-        throw new NotImplementedException();
+        if (request.Password != request.ConfirmPassword)
+            throw new ConflictException("Passwords do not match.");
+
+        var newUser = new ApplicationUser
+        {
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+            Email = request.Email,
+            UserName = request.Email,
+            PhoneNumber = request.PhoneNumber,
+            IsActive = request.IsActive
+        };
+
+        var result = await _userManager.CreateAsync(newUser, request.Password);
+
+        if (!result.Succeeded)
+            throw new IdentityException("Failed to create user.", GetIdentityResultErrorDescriptions(result));
+
+        return newUser.Id;
     }
 
     public Task<string> DeleteUserAsync(string id)
