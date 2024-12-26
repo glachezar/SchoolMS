@@ -121,7 +121,7 @@ public class UserService(
 
     public async Task<UserDto> GetUserByIdAsync(string id, CancellationToken cancellationToken)
     {
-        var userInDb = await GetUserAsync(id);
+        var userInDb = await GetUserAsync(id, cancellationToken);
 
         return userInDb.Adapt<UserDto>();
     }
@@ -130,7 +130,7 @@ public class UserService(
     {
         var userRoles = new List<UserRoleDto>();
 
-        var userInDb = await GetUserAsync(userId);
+        var userInDb = await GetUserAsync(userId, cancellationToken);
 
         var roles = await _roleManager
             .Roles
@@ -151,9 +151,14 @@ public class UserService(
         return userRoles;
     }
 
-    public Task<List<UserDto>> GetUsersAsync(CancellationToken cancellationToken)
+    public async Task<List<UserDto>> GetUsersAsync(CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var usersInDb =await _userManager
+            .Users
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        return usersInDb.Adapt<List<UserDto>>();
     }
 
     public Task<bool> IsEmailTakenAsync(string email)
@@ -166,12 +171,12 @@ public class UserService(
         throw new NotImplementedException();
     }
 
-    private async Task<ApplicationUser> GetUserAsync(string userId)
+    private async Task<ApplicationUser> GetUserAsync(string userId, CancellationToken cancellationToken = default)
     {
         return await _userManager
             .Users
             .Where(u => u.Id == userId)
-            .FirstOrDefaultAsync() ??
+            .FirstOrDefaultAsync(cancellationToken) ??
             throw new NotFoundException("User do not exists.");
     }
 
