@@ -89,6 +89,9 @@ public class UserService(
         if (request.Password != request.ConfirmPassword)
             throw new ConflictException("Passwords do not match.");
 
+        if (await IsEmailTakenAsync(request.Email))
+            throw new ConflictException("Email is already taken.");
+
         var newUser = new ApplicationUser
         {
             FirstName = request.FirstName,
