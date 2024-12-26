@@ -9,6 +9,7 @@ using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading;
@@ -125,9 +126,29 @@ public class UserService(
         return userInDb.Adapt<UserDto>();
     }
 
-    public Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken)
+    public async Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken)
     {
-        throw new NotImplementedException();
+        var userRoles = new List<UserRoleDto>();
+
+        var userInDb = await GetUserAsync(userId);
+
+        var roles = await _roleManager
+            .Roles
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
+        foreach (var rple in roles)
+        {
+            userRoles.Add(new UserRoleDto
+            {
+                RoleId = rple.Id,
+                Name = rple.Name,
+                Description = rple.Description,
+                IsAssigned = await _userManager.IsInRoleAsync(userInDb, rple.Name)
+            });
+        }
+
+        return userRoles;
     }
 
     public Task<List<UserDto>> GetUsersAsync(CancellationToken cancellationToken)
