@@ -9,7 +9,6 @@ using Infrastructure.Persistence.Contexts;
 using Infrastructure.Tenancy;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading;
