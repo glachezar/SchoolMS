@@ -187,6 +187,32 @@ public class UserService(
         return userInDb.Id;
     }
 
+    public async Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken)
+    {
+        var userInDb = await GetUserAsync(userId, cancellationToken);
+        var userRoles = await _userManager.GetRolesAsync(userInDb);
+
+        var permissions = new List<string>();
+
+        foreach (var role in await _roleManager.Roles
+            .Where(r => userRoles.Contains(r.Name))
+            .ToListAsync(cancellationToken))
+        {
+            permissions.AddRange(await _context
+                .RoleClaims
+                .Where(rc => rc.RoleId == role.Id && rc.ClaimType == ClaimConstants.Permission)
+                .Select(rc => rc.ClaimValue)
+                .ToListAsync());
+        }
+
+        return permissions.Distinct().ToList();
+    }
+
+    public async Task<bool> IsPermissionAssignedAsync(string userId, string permission, CancellationToken cancellationToken)
+    {
+        return (await GetPermissionsAsync(userId, cancellationToken)).Contains(permission);
+    }
+
     private async Task<ApplicationUser> GetUserAsync(string userId, CancellationToken cancellationToken = default)
     {
         return await _userManager
