@@ -3,6 +3,7 @@
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Tenancy;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,5 +15,10 @@ public static class ServiceCollectionExtensions
             .AddMultiTenancyServices(configuration)
             .AddPersistenceServices(configuration)
             .AddIdentityServices();
+    }
+
+    public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
+    {
+        return app.UseCurrentUser();
     }
 }

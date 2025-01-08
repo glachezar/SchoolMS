@@ -2,13 +2,16 @@
 
 using Application.Features.Identity.Roles;
 using Application.Features.Identity.Tokens;
+using Application.Features.Identity.Users;
+using Infrastructure.Identity.Auth;
 using Infrastructure.Identity.Models;
 using Infrastructure.Identity.Tokens;
 using Infrastructure.Persistence.Contexts;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
-public static class IdentityServiceExtensions
+internal static class IdentityServiceExtensions
 {
     internal static IServiceCollection AddIdentityServices(this IServiceCollection services)
     {
@@ -26,6 +29,13 @@ public static class IdentityServiceExtensions
             .AddDefaultTokenProviders()
             .Services
             .AddTransient<ITokenService, TokenService>()
-            .AddTransient<IRoleService, RoleService>();
+            .AddTransient<IRoleService, RoleService>()
+            .AddScoped<ICurrentUserService, CurrentUserService>()
+            .AddScoped<CurrentUserMiddleware>();
+    }
+
+    internal static IApplicationBuilder UseCurrentUser(this IApplicationBuilder app)
+    {
+        return app.UseMiddleware<CurrentUserMiddleware>();
     }
 }
