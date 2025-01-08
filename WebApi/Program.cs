@@ -33,9 +33,9 @@ namespace WebApi
 
             app.UseAuthorization();
 
-            app.UseInfrastructure();
-
             app.MapControllers();
+
+            app.UseInfrastructure();
 
             app.Run();
         }
