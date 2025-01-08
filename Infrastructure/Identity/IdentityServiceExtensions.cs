@@ -30,6 +30,7 @@ internal static class IdentityServiceExtensions
             .Services
             .AddTransient<ITokenService, TokenService>()
             .AddTransient<IRoleService, RoleService>()
+            .AddTransient<IUserService, UserService>()
             .AddScoped<ICurrentUserService, CurrentUserService>()
             .AddScoped<CurrentUserMiddleware>();
     }
