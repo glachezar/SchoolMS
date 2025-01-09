@@ -14,5 +14,5 @@ public interface IUserService
     Task<List<UserRoleDto>> GetUserRolesAsync(string userId, CancellationToken cancellationToken);
     Task<bool> IsEmailTakenAsync(string email);
     Task<List<string>> GetPermissionsAsync(string userId, CancellationToken cancellationToken);
-    Task<bool> IsPermissionAssignedAsync(string userId, string permission, CancellationToken cancellationToken);
+    Task<bool> IsPermissionAssignedAsync(string userId, string permission, CancellationToken cancellationToken = default);
 }
