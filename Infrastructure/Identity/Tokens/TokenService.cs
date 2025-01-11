@@ -2,10 +2,12 @@
 
 using Application.Exceptions;
 using Application.Features.Identity.Tokens;
+using Infrastructure.Identity.Auth.Jwt;
 using Infrastructure.Identity.Constants;
 using Infrastructure.Identity.Models;
 using Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -13,10 +15,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenantInfo tenant) : ITokenService
+public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenantInfo tenant, IOptions<JwtSettings> jwtSettings) : ITokenService
 {
     readonly UserManager<ApplicationUser> _userManager = userManager;
     readonly SchoolTenantInfo _tenant = tenant;
+    readonly JwtSettings _jwtSettings = jwtSettings.Value;
 
     public async Task<TokenResponse> LoginAsync(TokenRequest request)
     {
@@ -50,7 +53,7 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
 
     public async Task<TokenResponse> RefreshTokenAsync(RefreshTokenRequest refreshTokenRequest)
     {
-        var userPrincipal = GetClaimsPrincipalFromToken(refreshTokenRequest.CurrentJwtToken);
+        var userPrincipal = GetClaimsPrincipalFromExpiredToken(refreshTokenRequest.CurrentJwtToken);
         var userEmail = userPrincipal.GetEmail();
 
         var userInDb = await _userManager.FindByEmailAsync(userEmail)
@@ -59,12 +62,12 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
         return await GenerateTokenAndUpdateUserAsync(userInDb);
     }
 
-    private ClaimsPrincipal GetClaimsPrincipalFromToken(string expiredToken)
+    private ClaimsPrincipal GetClaimsPrincipalFromExpiredToken(string expiredToken)
     {
         var tkValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecret2345678")),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
             ValidateIssuer = false,
             ValidateAudience = false,
             ClockSkew = TimeSpan.Zero,
@@ -89,7 +92,7 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
         var newToken = GenerateJwt(user);
 
         user.RefreshToken = GenerateRefreshToken();
-        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+        user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiaryTimeInDays);
 
         await _userManager.UpdateAsync(user);
         return new() 
@@ -110,7 +113,7 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
         var token =
             new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(60),
+            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.TokenExpiaryTimeInMinutes),
             signingCredentials: signingCredentials);
 
         var tokenHandler = new JwtSecurityTokenHandler();
@@ -119,7 +122,7 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
 
     private SigningCredentials GetSigningCredentials()
     {
-        byte[] secret = Encoding.UTF8.GetBytes("superSecret2345678");
+        byte[] secret = Encoding.UTF8.GetBytes(_jwtSettings.Key);
         var secretKey = new SymmetricSecurityKey(secret);
         return new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
     }
