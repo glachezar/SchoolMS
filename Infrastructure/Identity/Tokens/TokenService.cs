@@ -61,7 +61,7 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
 
     private ClaimsPrincipal GetClaimsPrincipalFromToken(string expiredToken)
     {
-        var tkValidationParams = new TokenValidationParameters
+        var tkValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("superSecret2345678")),
@@ -73,7 +73,7 @@ public class TokenService(UserManager<ApplicationUser> userManager, SchoolTenant
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var principal = tokenHandler.ValidateToken(expiredToken, tkValidationParams, out var securityToken);
+        var principal = tokenHandler.ValidateToken(expiredToken, tkValidationParameters, out var securityToken);
 
         if (securityToken is not JwtSecurityToken jwtSecurityToken || 
             !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
