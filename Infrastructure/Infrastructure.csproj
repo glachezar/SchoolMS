@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Application\Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Identity\Auth\Jwt\" />
+  </ItemGroup>
+
 </Project>
