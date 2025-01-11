@@ -2,10 +2,14 @@
 
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class BaseHeaderAttribute : Attribute
+public class BaseHeaderAttribute(
+    string headerName, 
+    string description, 
+    string defaultValue, 
+    bool isRequired) : Attribute
 {
-    public string HeaderName { get; set; }
-    public string Description { get; set; }
-    public string DefaultValue { get; set; }
-    public bool IsRequired { get; set; }
+    public string HeaderName { get; set; } = headerName;
+    public string Description { get; set; } = description;
+    public string DefaultValue { get; set; } = defaultValue;
+    public bool IsRequired { get; set; } = isRequired;
 }
