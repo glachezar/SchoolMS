@@ -2,7 +2,7 @@
 
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-public class BaseHeaderAttribute(
+public class SwaggerHeaderAttribute(
     string headerName, 
     string description, 
     string defaultValue, 

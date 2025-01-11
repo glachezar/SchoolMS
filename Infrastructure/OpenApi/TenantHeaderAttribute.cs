@@ -2,7 +2,7 @@
 
 using Infrastructure.Tenancy;
 
-public class TenantHeaderAttribute : BaseHeaderAttribute
+public class TenantHeaderAttribute : SwaggerHeaderAttribute
 {
     public TenantHeaderAttribute() 
         : base(
