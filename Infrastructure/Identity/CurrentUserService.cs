@@ -52,8 +52,10 @@ public class CurrentUserService : ICurrentUserService
 
     public void SetCurrentUser(ClaimsPrincipal principal)
     {
-        if (_principal is not null) 
+        if (_principal is not null)
+        {
             throw new ConflictException("Invalid operation on claim.");
+        }
 
         _principal = principal;
     }
