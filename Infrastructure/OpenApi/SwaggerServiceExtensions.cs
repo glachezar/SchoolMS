@@ -59,6 +59,7 @@ internal static class SwaggerServiceExtensions
             options.DocExpansion = "none";
             options.TagsSorter = "alpha";
         });
+
         return app;
     }
 }

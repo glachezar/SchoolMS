@@ -1,6 +1,7 @@
 ﻿namespace Infrastructure;
 
 using Infrastructure.Identity;
+using Infrastructure.OpenApi;
 using Infrastructure.Persistence;
 using Infrastructure.Tenancy;
 using Microsoft.AspNetCore.Builder;
@@ -16,11 +17,14 @@ public static class ServiceCollectionExtensions
             .AddPersistenceServices(configuration)
             .AddIdentityServices()
             .AddPermissions()
-            .AddJwtAuthentication();
+            .AddJwtAuthentication()
+            .AddOpenApiDocumentation(configuration);
     }
 
     public static IApplicationBuilder UseInfrastructure(this IApplicationBuilder app)
     {
-        return app.UseCurrentUser();
+        return app
+            .UseCurrentUser()
+            .UseOpenApiDocumentation();
     }
 }
