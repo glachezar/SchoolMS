@@ -1,6 +1,7 @@
 ﻿namespace Infrastructure.OpenApi;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NSwag.Generation.Processors.Security;
@@ -47,5 +48,17 @@ internal static class SwaggerServiceExtensions
         });
 
         return services;
+    }
+
+    internal static IApplicationBuilder UseOpenApiDocumentation(this IApplicationBuilder app)
+    {
+        app.UseOpenApi();
+        app.UseSwaggerUi(options =>
+        {
+            options.DefaultModelsExpandDepth = -1;
+            options.DocExpansion = "none";
+            options.TagsSorter = "alpha";
+        });
+        return app;
     }
 }
